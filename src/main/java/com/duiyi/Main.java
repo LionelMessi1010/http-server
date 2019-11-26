@@ -16,6 +16,5 @@ public class Main {
             System.err.println("exception: " + e.getMessage());
         }
         System.out.println("server close!");
-
     }
 }

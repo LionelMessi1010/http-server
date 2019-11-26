@@ -25,7 +25,6 @@ import static io.netty.buffer.Unpooled.copiedBuffer;
  * 自定义处理的handler
  */
 public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-
     /**
      * 处理请求
      */
@@ -34,13 +33,13 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
         System.out.println(fullHttpRequest);
 
         FullHttpResponse response = null;
-        if (fullHttpRequest.getMethod() == HttpMethod.GET) {
+        if (fullHttpRequest.getMethod().equals(HttpMethod.GET)) {
             System.out.println(getGetParamsFromChannel(fullHttpRequest));
             String data = "GET method over";
             ByteBuf buf = copiedBuffer(data, CharsetUtil.UTF_8);
             response = responseOK(HttpResponseStatus.OK, buf);
 
-        } else if (fullHttpRequest.getMethod() == HttpMethod.POST) {
+        } else if (fullHttpRequest.getMethod().equals(HttpMethod.POST)) {
             System.out.println(getPostParamsFromChannel(fullHttpRequest));
             String data = "POST method over";
             ByteBuf content = copiedBuffer(data, CharsetUtil.UTF_8);
@@ -60,7 +59,7 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
 
         Map<String, Object> params = new HashMap<String, Object>();
 
-        if (fullHttpRequest.getMethod() == HttpMethod.GET) {
+        if (fullHttpRequest.getMethod().equals(HttpMethod.GET)) {
             // 处理get请求
             QueryStringDecoder decoder = new QueryStringDecoder(fullHttpRequest.getUri());
             Map<String, List<String>> paramList = decoder.parameters();
@@ -81,7 +80,7 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
 
         Map<String, Object> params = new HashMap<String, Object>();
 
-        if (fullHttpRequest.getMethod() == HttpMethod.POST) {
+        if (fullHttpRequest.getMethod().equals(HttpMethod.POST)) {
             // 处理POST请求
             String strContentType = fullHttpRequest.headers().get("Content-Type").trim();
             if (strContentType.contains("x-www-form-urlencoded")) {

@@ -18,9 +18,9 @@ public class NettyHttpServerInitializer extends ChannelInitializer<SocketChannel
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         // 请求解码器
         socketChannel.pipeline().addLast("http-decoder", new HttpRequestDecoder());
-        // 将HTTP消息的多个部分合成一条完整的HTTP消息
-        socketChannel.pipeline().addLast("http-aggregator", new HttpObjectAggregator(65535));
-        // 响应转码器
+        // 聚合器，将HTTP消息的多个部分合成一条完整的HTTP消息，设置最大聚合字节长度为1M
+        socketChannel.pipeline().addLast("http-aggregator", new HttpObjectAggregator(1024 * 1024));
+        // 响应编码器
         socketChannel.pipeline().addLast("http-encoder", new HttpResponseEncoder());
         // 解决大码流的问题，ChunkedWriteHandler：向客户端发送HTML5文件
         socketChannel.pipeline().addLast("http-chunked", new ChunkedWriteHandler());
