@@ -17,12 +17,13 @@ import java.util.List;
 import java.util.Map;
 
 import static io.netty.buffer.Unpooled.copiedBuffer;
+
 /**
  * @time: 2019/11/23 19:12
  * @version: 1.00
  * @author: duiyi
  *
- * 自定义处理的handler
+ * 自定义Handler，支持基本的get请求，post请求，数据类型为from表单，Json
  */
 public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     /**
@@ -30,25 +31,37 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest) {
+        //打印请求报文：请求行，请求头，请求空行，请求体
+        System.out.println();
         System.out.println(fullHttpRequest);
 
         FullHttpResponse response = null;
+        //Get请求
         if (fullHttpRequest.getMethod().equals(HttpMethod.GET)) {
+            //获取请求附带参数
             System.out.println(getGetParamsFromChannel(fullHttpRequest));
             String data = "GET method over";
             ByteBuf buf = copiedBuffer(data, CharsetUtil.UTF_8);
+            //结果返回客户端
             response = responseOK(HttpResponseStatus.OK, buf);
+        }
 
-        } else if (fullHttpRequest.getMethod().equals(HttpMethod.POST)) {
+        //Post请求
+        else if (fullHttpRequest.getMethod().equals(HttpMethod.POST)) {
+            //获取请求参数
             System.out.println(getPostParamsFromChannel(fullHttpRequest));
             String data = "POST method over";
             ByteBuf content = copiedBuffer(data, CharsetUtil.UTF_8);
+            //结果返回客户端
             response = responseOK(HttpResponseStatus.OK, content);
+        }
 
-        } else {
+        //不支持其他请求
+        else {
             response = responseOK(HttpResponseStatus.INTERNAL_SERVER_ERROR, null);
         }
-        // 发送响应
+
+        // 响应客户端
         channelHandlerContext.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
@@ -60,7 +73,8 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
         Map<String, Object> params = new HashMap<String, Object>();
 
         if (fullHttpRequest.getMethod().equals(HttpMethod.GET)) {
-            // 处理get请求
+            // 处理GET请求
+            //通过解码器得到客户端uri
             QueryStringDecoder decoder = new QueryStringDecoder(fullHttpRequest.getUri());
             Map<String, List<String>> paramList = decoder.parameters();
             for (Map.Entry<String, List<String>> entry : paramList.entrySet()) {
@@ -70,7 +84,6 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
         } else {
             return null;
         }
-
     }
 
     /**
@@ -83,8 +96,9 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
         if (fullHttpRequest.getMethod().equals(HttpMethod.POST)) {
             // 处理POST请求
             String strContentType = fullHttpRequest.headers().get("Content-Type").trim();
+            //判断请求头参数Content-Type值得是from表单还是json数据
             if (strContentType.contains("x-www-form-urlencoded")) {
-                params  = getFormParams(fullHttpRequest);
+                params = getFormParams(fullHttpRequest);
             } else if (strContentType.contains("application/json")) {
                 try {
                     params = getJSONParams(fullHttpRequest);
@@ -129,10 +143,10 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
         byte[] reqContent = new byte[content.readableBytes()];
         content.readBytes(reqContent);
         String strContent = new String(reqContent, "UTF-8");
-
         return params;
     }
 
+    //200
     private FullHttpResponse responseOK(HttpResponseStatus status, ByteBuf content) {
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
         if (content != null) {
