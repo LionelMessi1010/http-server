@@ -12,8 +12,6 @@
 
     <!--版本锁定-->
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>11</java.version>
         <netty.version>4.1.43.Final</netty.version>
     </properties>
 
