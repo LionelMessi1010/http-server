@@ -9,9 +9,13 @@ import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
+import io.netty.handler.codec.json.JsonObjectDecoder;
 import io.netty.util.CharsetUtil;
+import net.sf.json.JSONObject;
+import netscape.javascript.JSObject;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,7 +105,7 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
                 params = getFormParams(fullHttpRequest);
             } else if (strContentType.contains("application/json")) {
                 try {
-                    params = getJSONParams(fullHttpRequest);
+                    params = getJsonParams(fullHttpRequest);
                 } catch (UnsupportedEncodingException e) {
                     return null;
                 }
@@ -136,13 +140,19 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
     /**
      * 解析json数据（Content-Type = application/json）
      */
-    private Map<String, Object> getJSONParams(FullHttpRequest fullHttpRequest) throws UnsupportedEncodingException {
+    private Map<String, Object> getJsonParams(FullHttpRequest fullHttpRequest) throws UnsupportedEncodingException {
         Map<String, Object> params = new HashMap<String, Object>();
 
         ByteBuf content = fullHttpRequest.content();
         byte[] reqContent = new byte[content.readableBytes()];
         content.readBytes(reqContent);
-        String strContent = new String(reqContent, "UTF-8");
+        String strContent = new String(reqContent, StandardCharsets.UTF_8);
+
+        JSONObject jsonParams = JSONObject.fromObject(strContent);
+        for (Object key : jsonParams.keySet()) {
+            params.put(key.toString(), jsonParams.get(key));
+        }
+
         return params;
     }
 

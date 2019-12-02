@@ -13,14 +13,24 @@
     <!--版本锁定-->
     <properties>
         <netty.version>4.1.43.Final</netty.version>
+        <json-lib.version>2.4</json-lib.version>
     </properties>
 
     <!--依赖导入-->
     <dependencies>
+        <!--netty jar导入-->
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <version>${netty.version}</version>
+        </dependency>
+
+        <!--json 解析需要jar-->
+        <dependency>
+            <groupId>net.sf.json-lib</groupId>
+            <artifactId>json-lib</artifactId>
+            <version>${json-lib.version}</version>
+            <classifier>jdk15</classifier>
         </dependency>
     </dependencies>
 </project>
