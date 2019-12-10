@@ -9,16 +9,16 @@ import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
-import io.netty.handler.codec.json.JsonObjectDecoder;
 import io.netty.util.CharsetUtil;
 import net.sf.json.JSONObject;
-import netscape.javascript.JSObject;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import static io.netty.buffer.Unpooled.copiedBuffer;
 
@@ -26,7 +26,7 @@ import static io.netty.buffer.Unpooled.copiedBuffer;
  * @time: 2019/11/23 19:12
  * @version: 1.00
  * @author: duiyi
- *
+ * <p>
  * 自定义Handler，支持基本的get请求，post请求，数据类型为from表单，Json
  */
 public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -40,12 +40,26 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
         System.out.println(fullHttpRequest);
 
         FullHttpResponse response = null;
+        //请求固定资源
+        String str = "/index.html";
+        //获取文件的流
+        InputStream is = null;
         //Get请求
         if (fullHttpRequest.getMethod().equals(HttpMethod.GET)) {
             //获取请求附带参数
             System.out.println(getGetParamsFromChannel(fullHttpRequest));
-            String data = "GET method over";
-            ByteBuf buf = copiedBuffer(data, CharsetUtil.UTF_8);
+
+            //判断资源 是否存在
+            if (str.equals(fullHttpRequest.getUri())) {
+                //存在
+                is = this.getClass().getResourceAsStream("/index.html");
+
+            } else {
+                //404
+                is = this.getClass().getResourceAsStream("/404.html");
+            }
+            String resource = new Scanner(is).useDelimiter("\\Z").next();
+            ByteBuf buf = copiedBuffer(resource, CharsetUtil.UTF_8);
             //结果返回客户端
             response = responseOK(HttpResponseStatus.OK, buf);
         }
@@ -54,10 +68,19 @@ public class NettyHttpServerHandler extends SimpleChannelInboundHandler<FullHttp
         else if (fullHttpRequest.getMethod().equals(HttpMethod.POST)) {
             //获取请求参数
             System.out.println(getPostParamsFromChannel(fullHttpRequest));
-            String data = "POST method over";
-            ByteBuf content = copiedBuffer(data, CharsetUtil.UTF_8);
+            //判断资源 是否存在
+            if (str.equals(fullHttpRequest.getUri())) {
+                //存在
+                is = this.getClass().getResourceAsStream("/index.html");
+
+            } else {
+                //404
+                is = this.getClass().getResourceAsStream("/404.html");
+            }
+            String resource = new Scanner(is).useDelimiter("\\Z").next();
+            ByteBuf buf = copiedBuffer(resource, CharsetUtil.UTF_8);
             //结果返回客户端
-            response = responseOK(HttpResponseStatus.OK, content);
+            response = responseOK(HttpResponseStatus.OK, buf);
         }
 
         //不支持其他请求
